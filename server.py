@@ -4,7 +4,7 @@ import configparser
 import json
 
 from message import Message, MessageSchema
-from protocol import ProtocolSchema, Protocol
+from protocol import ProtocolSchema, Protocol, from_json
 
 
 class Server:
@@ -39,26 +39,23 @@ class Server:
 
     def on_start(self):
         print("Server is starting")
+        self.is_start = True
 
     def on_connection(self, address, connection):
         print(str(address) + " is connected")
         print(self.message_history)
 
         if len(self.message_history) > 0:
-
-            protocol = Protocol("list", self.message_history)
-            protocol_schema = ProtocolSchema()
-
-            json_list = protocol_schema.dumps(protocol)
-            json_list = json_list + "\n"
+            protocol = Protocol(Protocol.LIST, self.message_history)
+            json_list = protocol.to_json() + "\n"
             connection.send(json_list.encode('utf-8'))
 
     def on_disconnect(self, address):
         print(str(address) + " has been disconnected")
 
     def start(self):
-        self.is_start = True
         self.on_start()
+
         while self.is_start:
             connection, address = self.socket.accept()
             self.on_connection(address, connection)
@@ -78,11 +75,8 @@ class Server:
                 print(f"info from {str(address)}" + ' raw_text: ' + data)
                 # Парсим json в объект
 
-                schema = ProtocolSchema()
-                protocol = schema.loads(data)
+                protocol = from_json(data)
                 print(protocol)
-
-                # Добавляем сообщения в историю, чтобы в случае отдать
 
                 # Пробегаем по списку подключений отправляем всем сообщение
                 for child_connection in connection_list:
@@ -90,7 +84,6 @@ class Server:
                     if child_connection == connection:
                         self.message_history.append(protocol.content[0])
                         continue
-
                     child_connection.send(protocol.to_json().encode())
             except ConnectionResetError as e:
                 # Если случилась ошибка сообщаем об отключение

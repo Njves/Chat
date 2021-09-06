@@ -3,7 +3,14 @@ from marshmallow import Schema, fields, post_load
 from message import Message, MessageSchema
 
 
+def from_json(json):
+    return ProtocolSchema().loads(json)
+
+
 class Protocol:
+    SHOT = "shot"
+    LIST = "list"
+    ATTACH = "attach"
 
     def __init__(self, data_type, content):
         self.data_type = data_type
