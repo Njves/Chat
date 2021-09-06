@@ -4,6 +4,7 @@ import configparser
 import json
 
 from message import Message, MessageSchema
+from protocol import ProtocolSchema, Protocol
 
 
 class Server:
@@ -44,11 +45,13 @@ class Server:
         print(self.message_history)
 
         if len(self.message_history) > 0:
-            print(self.message_history[0].__dict__)
-            json_list = MessageSchema().dumps(self.message_history, many=True)
+
+            protocol = Protocol("list", self.message_history)
+            protocol_schema = ProtocolSchema()
+
+            json_list = protocol_schema.dumps(protocol)
             json_list = json_list + "\n"
             connection.send(json_list.encode('utf-8'))
-
 
     def on_disconnect(self, address):
         print(str(address) + " has been disconnected")
@@ -68,20 +71,27 @@ class Server:
         while True:
             try:
                 # Получаем сырые данные от клиента
-                raw_text = connection.recv(1024).decode('utf-8')
+                data = connection.recv(4096).decode('utf-8')
                 # Если сообщение не пустое выводим в лог
-                if not raw_text:
+                if not data:
                     return
-                print(f"info from {str(address)}" + ' raw_text: ' + raw_text)
+                print(f"info from {str(address)}" + ' raw_text: ' + data)
+                # Парсим json в объект
+
+                schema = ProtocolSchema()
+                protocol = schema.loads(data)
+                print(protocol)
+
                 # Добавляем сообщения в историю, чтобы в случае отдать
-                msg = Message(raw_text)
-                self.message_history.append(msg)
+
                 # Пробегаем по списку подключений отправляем всем сообщение
                 for child_connection in connection_list:
                     # Пропускаем отправителя
                     if child_connection == connection:
+                        self.message_history.append(protocol.content[0])
                         continue
-                    child_connection.send(msg.to_json().encode())
+
+                    child_connection.send(protocol.to_json().encode())
             except ConnectionResetError as e:
                 # Если случилась ошибка сообщаем об отключение
                 self.on_disconnect(address)

@@ -4,14 +4,11 @@ from json import JSONEncoder
 from marshmallow import Schema, fields, post_load
 
 
-def from_dict(text):
-    return Message(text)
-
-
 # Протокол сообщений внутри приложения
 class Message:
 
-    def __init__(self, text, sender, date=None):
+    def __init__(self, text, sender, date=None, id=None):
+
         self.date = time.time()
         self.text = text
         self.sender = sender
@@ -27,7 +24,7 @@ class Message:
         return format_json
 
     def to_dict(self):
-        return {"date": self.date, "text": self.text}
+        return {"date": self.date, "text": self.text, "sender": self.sender}
 
     def __str__(self):
         return self.to_dict().__str__()

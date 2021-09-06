@@ -4,11 +4,11 @@ import socket as sock
 import threading
 from configparser import ConfigParser
 from message import Message, MessageSchema
-from message import from_dict
 
 
-# Базовая обертка над клиентом
+# Библиотека для реализации клиента для сервера
 # Нужна реализация слушателя
+from protocol import ProtocolSchema, Protocol
 
 
 class Client:
@@ -35,8 +35,8 @@ class Client:
         cfg_parser.read(self.CONFIG)
         return int(cfg_parser['server']['port'])
 
-    def send_message(self, message):
-        self.socket.send(bytes(message, encoding='UTF-8'))
+    def send_message(self, protocol: Protocol):
+        self.socket.send(bytes(protocol.to_json(), encoding='UTF-8'))
 
     def listen(self):
         self.t = threading.Thread(target=self.get_message_from_server, args=())
@@ -46,44 +46,32 @@ class Client:
         try:
             self.t.join()
             self.socket.close()
+
         except ConnectionResetError as e:
             print("До свидания")
 
-
-
     def get_message_from_server(self):
-        print("receive")
+
         while True:
+            print("receive")
             # Пришел json объекта Message
             data = self.socket.recv(4096).decode('utf-8')
-            print(data)
+
+
+            protocol_schema = ProtocolSchema()
+            protocol = protocol_schema.loads(data)
+
             # Парсим json
+
             # Это костыль ебаный с начала пытаемся спарсить список, если получилось отдаем список, если нет все закрвыаемся
-            raw_json = json.loads(data)
-            if isinstance(raw_json, list):
-                for i in raw_json:
-                    message = from_dict(i['text'])
-                    self.send_listener_message(message)
-                    print(message)
-                return
-            msg_dict = MessageSchema().loads(data)
 
-            # Костыль если пришла история пробегамся по списку
+            for i in protocol.content:
+                message = Message(i['text'], i['sender'])
+                self.send_listener_message(message)
 
-            # Обычное получение
-            message = msg_dict
-            self.send_listener_message(message)
-            print(data)
+
 
     def send_listener_message(self, message):
         if self.listener is not None:
             # Отдаем объект месседж
             self.listener.on_message(message)
-
-
-if __name__ == '__main__':
-    client = Client(None)
-    client.listen()
-    while True:
-        msg = input("Введите сообщение: ")
-        client.send_message(msg)
