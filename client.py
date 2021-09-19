@@ -1,18 +1,17 @@
-import json
 import os
 import socket as sock
 import threading
 from configparser import ConfigParser
-from message import Message, MessageSchema
-
+from model.message import Message
 
 # Библиотека для реализации клиента для сервера
 # Нужна реализация слушателя
-from protocol import ProtocolSchema, Protocol
+from model.protocol import Protocol, from_json
 
 
 class Client:
-    CONFIG = 'server_config.ini'
+    CONFIG = '../server_config.ini'
+    is_connected = False
 
     def __init__(self, listener):
         # Проверяем конфиг
@@ -22,12 +21,31 @@ class Client:
 
         # Инициализируем сокет
         self.socket = sock.socket()
-        self.socket.connect(('localhost', 9090))
+
+    def init(self):
+        self.connect()
+
+    def connect(self):
+        if self.is_connected:
+            return
+        try:
+            self.socket.connect(('localhost', 9090))
+        except ConnectionRefusedError as e:
+            self.listener.on_failed(e)
+            self.is_connected = False
+            return
+        self.listen()
+        self.is_connected = True
+        self.listener.on_connected()
 
     def check_config(self):
         # Если конфига нет отрубаем клиента
         if not os.path.isfile(self.CONFIG):
             raise FileExistsError("Конфиг клиента не найден")
+
+    def on_failed(self, error):
+        print(f"Неудалось подключиться\n{error}")
+        self.listener.on_failed(error)
 
     # Получить порт из конфига
     def get_port(self):
@@ -46,30 +64,19 @@ class Client:
         try:
             self.t.join()
             self.socket.close()
-
+            self.listener.on_disconnect()
         except ConnectionResetError as e:
             print("До свидания")
 
     def get_message_from_server(self):
-
         while True:
-            print("receive")
             # Пришел json объекта Message
             data = self.socket.recv(4096).decode('utf-8')
-
-
-            protocol_schema = ProtocolSchema()
-            protocol = protocol_schema.loads(data)
-
             # Парсим json
-
-            # Это костыль ебаный с начала пытаемся спарсить список, если получилось отдаем список, если нет все закрвыаемся
-
+            protocol = from_json(data)
             for i in protocol.content:
                 message = Message(i['text'], i['sender'])
                 self.send_listener_message(message)
-
-
 
     def send_listener_message(self, message):
         if self.listener is not None:

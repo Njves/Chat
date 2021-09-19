@@ -87,6 +87,47 @@
      </rect>
     </property>
    </widget>
+   <widget class="QComboBox" name="comboBox">
+    <property name="geometry">
+     <rect>
+      <x>318</x>
+      <y>10</y>
+      <width>111</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Channel-0</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Channel-1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Channel-2</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QPushButton" name="pushButton_reconnect">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>10</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

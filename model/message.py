@@ -5,13 +5,16 @@ from marshmallow import Schema, fields, post_load
 
 
 # Протокол сообщений внутри приложения
+from model.account import Account, AccountSchema
+
+
 class Message:
 
-    def __init__(self, text, sender, date=None, id=None):
-
+    def __init__(self, text, sender: Account, date=None, id=None):
         self.date = time.time()
         self.text = text
         self.sender = sender
+
 
     # def to_json(self):
     #     struct = {"date": self.date, "text": self.text}
@@ -36,8 +39,8 @@ class Message:
 class MessageSchema(Schema):
     date = fields.Str()
     text = fields.Str()
-    sender = fields.Str()
-
+    sender = fields.Nested(AccountSchema)
+    
     @post_load
     def load(self, data, **kwargs):
         return Message(**data)

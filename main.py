@@ -1,11 +1,8 @@
-def nod(a, b):
-    if b == 0:
-        return a
+import msvcrt
+
+while True:
+    pressedKey = msvcrt.getch()
+    if ord(pressedKey) == ord('q'):
+       print("exit")
     else:
-        return nod(b, a % b)
-
-
-def nok(a, b):
-    return a * b // nod(a, b)
-
-print(nok(82, 1082))
+       print ("Key Pressed:", ord(pressedKey))

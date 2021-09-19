@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, post_load
 
-from message import Message, MessageSchema
+from model.message import MessageSchema, Message
 
 
 def from_json(json):
@@ -11,6 +11,8 @@ class Protocol:
     SHOT = "shot"
     LIST = "list"
     ATTACH = "attach"
+    ON_CONNECT = "on_connect"
+    DISCONNECT = "disconnect"
 
     def __init__(self, data_type, content):
         self.data_type = data_type

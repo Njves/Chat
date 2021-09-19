@@ -1,10 +1,13 @@
 import socket as sock
+import sys
 import threading
 import configparser
-import json
+import time
+import msvcrt
 
-from message import Message, MessageSchema
-from protocol import ProtocolSchema, Protocol, from_json
+from model.protocol import Protocol, from_json
+
+print("ДоБрО пОжАлОвАтЬ нА сЕрВеР шИзОфРеНиЯ")
 
 
 class Server:
@@ -64,6 +67,14 @@ class Server:
                 thread = threading.Thread(target=self.talking, args=(connection, address, self.current_connections))
                 thread.start()
 
+    # def send_all_without_sender(self, connection, connection_list):
+    #     protocol = Protocol(Protocol.ON_CONNECT, Message(f"Подключился {connection}", ""))
+    #     for child_connection in connection_list:
+    #         # Пропускаем отправителя
+    #         if child_connection == connection:
+    #             continue
+    #         child_connection.send(protocol.to_json().encode())
+
     def talking(self, connection, address, connection_list):
         while True:
             try:
@@ -77,7 +88,8 @@ class Server:
 
                 protocol = from_json(data)
                 print(protocol)
-
+                if protocol.data_type == Protocol.DISCONNECT:
+                    pass
                 # Пробегаем по списку подключений отправляем всем сообщение
                 for child_connection in connection_list:
                     # Пропускаем отправителя
@@ -91,6 +103,35 @@ class Server:
                 # Отрубаем ишака
                 connection_list.remove(connection)
                 break
+
+
+class Command:
+    def __init__(self):
+        pass
+
+
+class ServerAdminConsole:
+    def __init__(self, instance: Server):
+        self.server = instance
+        self.start_time = time.time()
+
+    def get_start_time(self):
+        return time.time() - self.start_time
+
+    def execute_command(self, command):
+        if command == "/time":
+            print(self.get_start_time())
+
+    def enter_command(self):
+        self.execute_command(msvcrt.getch())
+
+
+class CommandStorage:
+    commands = ['/time', '/connections']
+
+    def search_command(self, raw_query):
+        if raw_query in self.commands:
+            return
 
 
 if __name__ == '__main__':
