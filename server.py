@@ -51,7 +51,7 @@ class Server:
         if len(self.message_history) > 0:
             protocol = Protocol(Protocol.LIST, self.message_history)
             json_list = protocol.to_json() + "\n"
-            connection.send(json_list.encode('utf-8'))
+            connection.on_click_send(json_list.encode('utf-8'))
 
     def on_disconnect(self, address):
         print(str(address) + " has been disconnected")
@@ -86,6 +86,7 @@ class Server:
                 print(f"info from {str(address)}" + ' raw_text: ' + data)
                 # Парсим json в объект
 
+
                 protocol = from_json(data)
                 print(protocol)
                 if protocol.data_type == Protocol.DISCONNECT:
@@ -96,7 +97,7 @@ class Server:
                     if child_connection == connection:
                         self.message_history.append(protocol.content[0])
                         continue
-                    child_connection.send(protocol.to_json().encode())
+                    child_connection.on_click_send(protocol.to_json().encode())
             except ConnectionResetError as e:
                 # Если случилась ошибка сообщаем об отключение
                 self.on_disconnect(address)

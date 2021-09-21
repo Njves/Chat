@@ -48,22 +48,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit_sender">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>161</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius: 5px;</string>
-    </property>
-    <property name="placeholderText">
-     <string>Ваше имя</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_state">
     <property name="geometry">
      <rect>
@@ -115,17 +99,30 @@
    <widget class="QPushButton" name="pushButton_reconnect">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>10</y>
-      <width>31</width>
-      <height>31</height>
+      <x>240</x>
+      <y>11</y>
+      <width>61</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="styleSheet">
      <string notr="true"/>
     </property>
     <property name="text">
-     <string/>
+     <string>reconnect</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_account">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Аккаунт</string>
     </property>
    </widget>
   </widget>

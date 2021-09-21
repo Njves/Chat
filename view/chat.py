@@ -18,39 +18,42 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.ui = uic.loadUi("chat.ui")
         self.ui.show()
-        try:
-            self.account = get_account()
+        self.account = None
+        self.auth_ui = None
+        self.load_account()
 
-        except FileNotFoundError:
-            self.auth_ui = Ui_Auth_MainWindow(self)
-            self.ui.hide()
-
-        self.ui.pushButton_send.clicked.connect(self.send)
-        self.ui.lineEdit_sender.setPlaceholderText("Введите имя")
-        self.ui.pushButton_reconnect.clicked.connect(self.reconnect)
+        self.ui.pushButton_send.clicked.connect(self.on_click_send)
+        self.ui.pushButton_reconnect.clicked.connect(self.on_click_reconnect)
 
         self.client = Client(self)
         self.client.init()
 
         QtCore.QMetaObject.connectSlotsByName(self)
 
-    def send(self):
-        text = self.ui.lineEdit_text.text()
-        sender = self.ui.lineEdit_sender.text()
+    def load_account(self):
+        try:
+            self.account = get_account()
+        except FileNotFoundError:
+            self.auth_ui = Ui_Auth_MainWindow(self)
+            self.ui.hide()
+        self.ui.label_account.setText(str(self.account))
 
+
+    def on_click_send(self):
+        text = self.ui.lineEdit_text.text()
         msg = Message(text, sender=self.account)
         protocol = Protocol(Protocol.LIST, [msg])
 
         self.client.send_message(protocol)
-
         self.on_message(msg, True)
 
-    def reconnect(self):
+    def on_click_reconnect(self):
         self.client.connect()
 
     def on_connected(self):
         self.ui.label_state.setText("Подключен")
-        protocol = Protocol(Protocol.ON_CONNECT, [Message("Я подключился!", self.ui.lineEdit_sender.text())])
+        self.ui.pushButton_send.setEnabled(True)
+        protocol = Protocol(Protocol.ON_CONNECT, [Message("Я подключился!", self.account.name)])
         self.client.send_message(protocol)
         self.ui.pushButton_send.setStyleSheet("background-color: #1976D2; border-radius: 5px; color: white;")
 
@@ -59,7 +62,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         print(message)
         if is_owner:
             message.sender.name = "Вы!"
-        
+
         self.ui.listWidget.addItem(
             f"Отправитель: {message.sender} \nВремя: {datetime.datetime.fromtimestamp(message.date)} \nСообщение: {message.text}")
 
@@ -69,7 +72,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_send.setEnabled(False)
         self.ui.pushButton_send.setStyleSheet("background-color: #fff")
 
-
     def on_disconnect(self):
         disconnect_message = Protocol(Protocol.DISCONNECT, [])
         self.client.send_message(disconnect_message)
@@ -77,7 +79,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def on_auth(self):
         self.ui.show()
-
+        # Подгружаем аккаунт при авторизации
+        self.load_account()
 
 
 if __name__ == "__main__":

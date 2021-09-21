@@ -8,6 +8,7 @@ from model.account import Account, generate_uid, from_json
 
 class AuthWriter:
     AUTH_FILE = "auth.json"
+
     def __init__(self):
         self.name = ""
         self.email = ""

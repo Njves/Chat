@@ -30,7 +30,7 @@ class Client:
             return
         try:
             self.socket.connect(('localhost', 9090))
-        except ConnectionRefusedError as e:
+        except ConnectionError as e:
             self.listener.on_failed(e)
             self.is_connected = False
             return
