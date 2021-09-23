@@ -73,7 +73,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_send.setStyleSheet("background-color: #fff")
 
     def on_disconnect(self):
-        disconnect_message = Protocol(Protocol.DISCONNECT, [])
+        disconnect_message = Protocol(Protocol.DISCONNECT, Message("Я отключился", self.account))
         self.client.send_message(disconnect_message)
         self.client = None
 

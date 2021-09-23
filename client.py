@@ -22,6 +22,7 @@ class Client:
         # Инициализируем сокет
         self.socket = sock.socket()
 
+
     def init(self):
         self.connect()
 
