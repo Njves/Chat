@@ -67,14 +67,6 @@ class Server:
                 thread = threading.Thread(target=self.talking, args=(connection, address, self.current_connections))
                 thread.start()
 
-    # def send_all_without_sender(self, connection, connection_list):
-    #     protocol = Protocol(Protocol.ON_CONNECT, Message(f"Подключился {connection}", ""))
-    #     for child_connection in connection_list:
-    #         # Пропускаем отправителя
-    #         if child_connection == connection:
-    #             continue
-    #         child_connection.send(protocol.to_json().encode())
-
     def talking(self, connection, address, connection_list):
         while True:
             try:
@@ -95,7 +87,6 @@ class Server:
                 for child_connection in connection_list:
                     # Пропускаем отправителя
                     if child_connection == connection:
-                        message_history = {"ip": address, "protocol": protocol.content[0]}
                         self.message_history.append(protocol.content[0])
                         continue
                     child_connection.send(protocol.to_json().encode())

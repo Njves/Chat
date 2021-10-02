@@ -6,4 +6,7 @@ class Channel:
         self.uid = uid
         self.name = name
         self.connection_size = connection_size
+        self.message_list = []
+
+
 

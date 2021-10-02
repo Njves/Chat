@@ -1,15 +1,42 @@
 # -*- coding: utf-8 -*-
+import datetime
 import sys
-from PyQt5 import uic
+
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QListWidgetItem
+from PyQt5 import uic
+from PyQt5.QtWidgets import QComboBox, QListWidget
 
 from client import Client
-from model.account import Account, generate_uid
+from model.channel import Channel
 from model.message import Message
-import datetime
 from model.protocol import Protocol
-from view.auth import check_auth, Ui_Auth_MainWindow, get_account
+from view.auth import Ui_Auth_MainWindow, get_account
+
+
+class ChatChannel:
+    def __init__(self):
+        self.channel_list = self.init_channels()
+
+    def init_channels(self):
+        # if len(self.channel_list) > 0:
+        #     raise PermissionError(" You already initialize channels")
+
+        channels = []
+        for i in range(3):
+            name = f"Channel-{i}"
+            channel = Channel(str(hash(name)), name, 0)
+            channels.append(channel)
+        return channels
+
+    def get_channel(self, uid):
+        channel = [i for i in self.channel_list if i.uid == str(hash(uid))]
+        return channel[0]
+
+    def remove_message(self, channel: Channel, message: Message):
+        channel.message_list.remove(message)
+
+    def add_message(self, channel: Channel, message: Message):
+        channel.message_list.append(message)
 
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
@@ -21,14 +48,24 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.account = None
         self.auth_ui = None
         self.load_account()
+        self.chat_channel = ChatChannel()
 
         self.ui.pushButton_send.clicked.connect(self.on_click_send)
         self.ui.pushButton_reconnect.clicked.connect(self.on_click_reconnect)
-
+        self.comboBox: QComboBox = self.ui.comboBox
+        self.comboBox.currentTextChanged.connect(self.on_combobox_changed)
         self.client = Client(self)
         self.client.init()
 
         QtCore.QMetaObject.connectSlotsByName(self)
+
+    def on_combobox_changed(self):
+        print(self.comboBox.currentIndex())
+        list_widget: QListWidget = self.ui.listWidget
+        list_widget.clear()
+        current_channel = self.chat_channel.get_channel(self.comboBox.currentText())
+        for message in current_channel.message_list:
+            self.on_message(message, False)
 
     def load_account(self):
         try:
@@ -37,7 +74,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.auth_ui = Ui_Auth_MainWindow(self)
             self.ui.hide()
         self.ui.label_account.setText(str(self.account))
-
 
     def on_click_send(self):
         text = self.ui.lineEdit_text.text()
@@ -53,7 +89,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def on_connected(self):
         self.ui.label_state.setText("Подключен")
         self.ui.pushButton_send.setEnabled(True)
-        protocol = Protocol(Protocol.ON_CONNECT, [Message("Я подключился!", self.account.name)])
+        protocol = Protocol(Protocol.ON_CONNECT, [Message("Я подключился!", self.account)])
         self.client.send_message(protocol)
         self.ui.pushButton_send.setStyleSheet("background-color: #1976D2; border-radius: 5px; color: white;")
 
